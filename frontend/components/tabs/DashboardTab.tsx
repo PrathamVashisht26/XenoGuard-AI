@@ -114,7 +114,7 @@ export default function DashboardTab({ sessionId, status }: { sessionId: string;
                 </Pie>
                 <Tooltip
                   contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13 }}
-                  formatter={(val: number) => [val.toLocaleString(), "Errors"]}
+                  formatter={(val: any) => [Number(val).toLocaleString(), "Errors"]}
                 />
                 <Legend
                   iconType="circle" iconSize={8}
