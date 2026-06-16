@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/v1";
+const IS_PROD = typeof window !== "undefined" && !window.location.hostname.includes("localhost");
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (IS_PROD ? "https://xenoguard-ai.onrender.com/v1" : "http://localhost:8000/v1");
 
 export const api = axios.create({
   baseURL: API_BASE,
