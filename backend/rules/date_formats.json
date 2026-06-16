@@ -1,0 +1,16 @@
+{
+  "accepted_formats": [
+    "%Y-%m-%d",
+    "%d/%m/%Y",
+    "%m/%d/%Y",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d %H:%M:%S",
+    "%d-%m-%Y",
+    "%Y%m%d",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%b %d, %Y",
+    "%B %d, %Y"
+  ],
+  "preferred_output": "%Y-%m-%d"
+}

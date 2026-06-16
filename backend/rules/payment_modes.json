@@ -1,0 +1,18 @@
+{
+  "valid_modes": [
+    "CREDIT_CARD",
+    "DEBIT_CARD",
+    "UPI",
+    "NET_BANKING",
+    "CASH",
+    "WALLET",
+    "CRYPTO",
+    "BANK_TRANSFER",
+    "EMI",
+    "BUY_NOW_PAY_LATER",
+    "CHEQUE",
+    "PAYPAL",
+    "STRIPE",
+    "RAZORPAY"
+  ]
+}

@@ -1,0 +1,66 @@
+import hashlib
+import uuid
+import os
+from pathlib import Path
+from datetime import datetime
+
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.database import get_db
+from app.models import UploadSession, AuditEvent
+
+router = APIRouter()
+
+MAX_BYTES = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+UPLOAD_ROOT = Path(settings.STORAGE_ROOT)
+
+
+@router.post("/upload")
+async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are accepted.")
+
+    content = await file.read()
+    if len(content) > MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds maximum size of {settings.MAX_UPLOAD_SIZE_MB}MB.",
+        )
+
+    checksum = hashlib.md5(content).hexdigest()
+    session_id = str(uuid.uuid4())
+
+    session_dir = UPLOAD_ROOT / session_id
+    session_dir.mkdir(parents=True, exist_ok=True)
+    file_path = session_dir / "original.csv"
+    file_path.write_bytes(content)
+
+    db_session = UploadSession(
+        id=session_id,
+        original_name=file.filename,
+        file_size_bytes=len(content),
+        status="PENDING",
+        storage_path=str(file_path),
+        checksum_md5=checksum,
+    )
+    db.add(db_session)
+
+    db.add(AuditEvent(
+        session_id=session_id,
+        event_type="FILE_UPLOADED",
+        event_data={"filename": file.filename, "size_bytes": len(content)},
+    ))
+    db.commit()
+
+    from app.workers.tasks import split_and_enqueue
+    split_and_enqueue.delay(session_id, str(file_path))
+
+    return {
+        "session_id": session_id,
+        "status": "PENDING",
+        "filename": file.filename,
+        "size_bytes": len(content),
+        "message": "Upload successful. Processing started.",
+    }

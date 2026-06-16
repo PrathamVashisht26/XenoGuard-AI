@@ -1,0 +1,12 @@
+{
+  "IN": { "name": "India", "digits": 10, "prefix": "+91", "regex": "^[6-9]\\d{9}$" },
+  "SG": { "name": "Singapore", "digits": 8, "prefix": "+65", "regex": "^[689]\\d{7}$" },
+  "US": { "name": "United States", "digits": 10, "prefix": "+1", "regex": "^[2-9]\\d{9}$" },
+  "GB": { "name": "United Kingdom", "digits": 10, "prefix": "+44", "regex": "^[1-9]\\d{9}$" },
+  "AU": { "name": "Australia", "digits": 9, "prefix": "+61", "regex": "^[2-9]\\d{8}$" },
+  "AE": { "name": "UAE", "digits": 9, "prefix": "+971", "regex": "^[0-9]{9}$" },
+  "DE": { "name": "Germany", "digits": 10, "prefix": "+49", "regex": "^[1-9]\\d{9}$" },
+  "JP": { "name": "Japan", "digits": 10, "prefix": "+81", "regex": "^[789]\\d{9}$" },
+  "CA": { "name": "Canada", "digits": 10, "prefix": "+1", "regex": "^[2-9]\\d{9}$" },
+  "MY": { "name": "Malaysia", "digits": 9, "prefix": "+60", "regex": "^[1-9]\\d{8}$" }
+}
