@@ -39,7 +39,7 @@ app.include_router(downloads.router, prefix="/v1", tags=["Downloads"])
 app.include_router(events.router, prefix="/v1", tags=["Events"])
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
     return {"status": "ok", "service": "XenoGuard AI"}
 
