@@ -1,10 +1,8 @@
 import hashlib
 import uuid
-import os
 from pathlib import Path
-from datetime import datetime
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -17,8 +15,30 @@ MAX_BYTES = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
 UPLOAD_ROOT = Path(settings.STORAGE_ROOT)
 
 
+def _run_processing(session_id: str, file_path: str):
+    """Run processing synchronously in a background thread (no Celery needed)."""
+    try:
+        from app.workers.tasks import split_and_enqueue
+        # Try Celery first
+        split_and_enqueue.delay(session_id, file_path)
+    except Exception:
+        # Fallback: run the core logic directly without Celery
+        try:
+            from app.workers.tasks import _run_full_pipeline
+            _run_full_pipeline(session_id, file_path)
+        except Exception as e:
+            # Log but don't crash — session will stay PENDING
+            import traceback
+            print(f"[ERROR] Processing failed for {session_id}: {e}")
+            print(traceback.format_exc())
+
+
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_file(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+):
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are accepted.")
 
@@ -54,8 +74,8 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
     ))
     db.commit()
 
-    from app.workers.tasks import split_and_enqueue
-    split_and_enqueue.delay(session_id, str(file_path))
+    # Always use FastAPI background tasks — works without Redis/Celery
+    background_tasks.add_task(_run_processing, session_id, str(file_path))
 
     return {
         "session_id": session_id,
