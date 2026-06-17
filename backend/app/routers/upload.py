@@ -36,9 +36,11 @@ def _run_processing(session_id: str, file_path: str):
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
+    if background_tasks is None:
+        background_tasks = BackgroundTasks()
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are accepted.")
 
@@ -74,7 +76,7 @@ async def upload_file(
     ))
     db.commit()
 
-    # Always use FastAPI background tasks — works without Redis/Celery
+    # Run in background thread — no Redis/Celery needed
     background_tasks.add_task(_run_processing, session_id, str(file_path))
 
     return {
